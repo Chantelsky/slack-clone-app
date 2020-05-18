@@ -16,25 +16,68 @@ const Register = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [error, setError] = useState('');
+
+  const isFormValid = () => {
+    let errors = [];
+    let error;
+
+    if (isFormEmpty()) {
+      error = { message: 'Fill in all fields' };
+      setError({ errors: errors.concat(error) });
+      return false;
+    } else if (!isPasswordValid()) {
+      error = { message: 'Password is invalid' };
+      setError({ errors: errors.concat(error) });
+      return false;
+    } else {
+      return true;
+    }
+  };
+
+  const isPasswordValid = (props) => {
+    if (password.length < 6 || confirmPassword.length < 6) {
+      return false;
+    } else if (password !== confirmPassword) {
+      return false;
+    } else {
+      return true;
+    }
+  };
+
+  const displayErrors = (errors) => {
+    errors.map((error, i) => <p key={i}>{error.message}</p>);
+  };
+
+  const isFormEmpty = (props) => {
+    return (
+      !userName.length ||
+      !email.length ||
+      !password.length ||
+      !confirmPassword.length
+    );
+  };
 
   const handleSubmit = (e) => {
-    e.preventDefault();
-    firebase
-      .auth()
-      .createUserWithEmailAndPassword(email, password)
-      .then((createdUser) => {
-        console.log(createdUser);
-      })
-      .catch((err) => {
-        console.error(err);
-      });
+    if (isFormValid()) {
+      e.preventDefault();
+      firebase
+        .auth()
+        .createUserWithEmailAndPassword(email, password)
+        .then((createdUser) => {
+          console.log(createdUser);
+        })
+        .catch((err) => {
+          console.error(err);
+        });
+    }
   };
 
   return (
     <Grid textAlign="center" verticalAlign="middle" className="app">
-      <Grid.Column style={{ maxWidth: 450 }}>
-        <Header as="h2" icon color="orange" textAlign="center">
-          <Icon name="puzzle piece" color="orange" />
+      <Grid.Column style={{ maxWidth: 500 }}>
+        <Header as="h3" icon color="black" textAlign="center">
+          <Icon name="code" color="black" />
           Register for DevChat
         </Header>
         <Form onSubmit={handleSubmit} size="large">
@@ -75,11 +118,19 @@ const Register = () => {
               onChange={(e) => setConfirmPassword(e.target.value)}
               type="password"
             />
-            <Button color="orange" fluid size="large">
+            <Button color="black" fluid size="large">
               Submit
             </Button>
           </Segment>
         </Form>
+
+        {error.length > 0 && (
+          <Message error>
+            <h3>Error</h3>
+            {displayErrors(error)}
+          </Message>
+        )}
+
         <Message>
           Already a user? <Link to="/login">Login</Link>
         </Message>
