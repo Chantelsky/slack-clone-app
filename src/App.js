@@ -8,10 +8,9 @@ function App() {
   return (
     <>
       <Router>
-        hi
         <Route path="/" />
-        <Route path="/login" />
-        <Route path="/register" />
+        <Route path="/login" component={Login} />
+        <Route path="/register" component={Register} />
       </Router>
     </>
   );
