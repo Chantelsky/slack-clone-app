@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
+import firebase from '../../firebase';
+import md5 from 'md5';
 import {
   Grid,
   Form,
@@ -9,33 +11,42 @@ import {
   Icon,
 } from 'semantic-ui-react';
 import { Link } from 'react-router-dom';
-import firebase from '../../firebase';
 
-const Register = () => {
-  const [userName, setuserName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
+class Register extends React.Component {
+  state = {
+    username: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    errors: '',
+    loading: false,
+    usersRef: firebase.database().ref('users'),
+  };
 
-  const isFormValid = () => {
+  isFormValid = () => {
     let errors = [];
     let error;
 
-    if (isFormEmpty()) {
-      error = { message: 'Fill in all fields' };
-      setError({ errors: errors.concat(error) });
+    if (this.isFormEmpty(this.state)) {
+      error = { message: 'Fill in the required fields' };
+      this.setState({ errors: errors.concat(error) });
       return false;
-    } else if (!isPasswordValid()) {
-      error = { message: 'Password is invalid' };
-      setError({ errors: errors.concat(error) });
+    } else if (!this.isPasswordValid(this.state)) {
+      error = { message: 'Password is not valid' };
+      this.setState({ errors: errors.concat(error) });
       return false;
     } else {
       return true;
     }
   };
 
-  const isPasswordValid = (props) => {
+  isFormEmpty = ({ username, email, password, confirmPassword }) => {
+    return (
+      !username.length || !email.length || !password.length || !confirmPassword
+    );
+  };
+
+  isPasswordValid = ({ password, confirmPassword }) => {
     if (password.length < 6 || confirmPassword.length < 6) {
       return false;
     } else if (password !== confirmPassword) {
@@ -45,98 +56,133 @@ const Register = () => {
     }
   };
 
-  const displayErrors = (errors) => {
+  displayErrors = (errors) =>
     errors.map((error, i) => <p key={i}>{error.message}</p>);
+
+  handleChange = (e) => {
+    this.setState({ [e.target.name]: e.target.value });
   };
 
-  const isFormEmpty = (props) => {
-    return (
-      !userName.length ||
-      !email.length ||
-      !password.length ||
-      !confirmPassword.length
-    );
-  };
-
-  const handleSubmit = (e) => {
-    if (isFormValid()) {
-      e.preventDefault();
+  handleSubmit = (e) => {
+    e.preventDefault();
+    if (this.isFormValid()) {
+      this.setState({ errors: [], loading: true });
       firebase
         .auth()
-        .createUserWithEmailAndPassword(email, password)
+        .createUserWithEmailAndPassword(this.state.email, this.state.password)
         .then((createdUser) => {
           console.log(createdUser);
-        })
-        .catch((err) => {
-          console.error(err);
+          createdUser.user
+            .updateProfile({
+              displayName: this.state.username,
+              photoURL: `http://gravatar.com/avatar/{md5(createdUser.user.email)}?d=identicon`,
+            })
+            .then(() => {
+              this.saveUser(createdUser).then(() => {
+                console.log('user saved');
+              });
+            })
+            .catch((err) => {
+              console.error(err);
+              this.setState({
+                errors: this.state.errors.concat(err),
+                loading: false,
+              });
+            });
         });
     }
   };
 
-  return (
-    <Grid textAlign="center" verticalAlign="middle" className="app">
-      <Grid.Column style={{ maxWidth: 500 }}>
-        <Header as="h3" icon color="black" textAlign="center">
-          <Icon name="code" color="black" />
-          Register for DevChat
-        </Header>
-        <Form onSubmit={handleSubmit} size="large">
-          <Segment stacked>
-            <Form.Input
-              fluid
-              icon="user"
-              iconPosition="left"
-              placeholder="username"
-              value={userName}
-              onChange={(e) => setuserName(e.target.value)}
-              type="text"
-            />
-            <Form.Input
-              fluid
-              icon="mail"
-              iconPosition="left"
-              placeholder="Email Address"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              type="email"
-            />
-            <Form.Input
-              fluid
-              icon="lock"
-              iconPosition="left"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              type="password"
-            />
-            <Form.Input
-              fluid
-              icon="repeat"
-              iconPosition="left"
-              placeholder="Confirm Password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              type="password"
-            />
-            <Button color="black" fluid size="large">
-              Submit
-            </Button>
-          </Segment>
-        </Form>
+  saveUser = (createdUser) => {
+    return this.state.usersRef.child(createdUser.user.uid).set({
+      name: createdUser.user.displayName,
+      avatar: createdUser.user.photoURL,
+    });
+  };
 
-        {error.length > 0 && (
-          <Message error>
-            <h3>Error</h3>
-            {displayErrors(error)}
+  render() {
+    const {
+      username,
+      email,
+      password,
+      confirmPassword,
+      errors,
+      loading,
+    } = this.state;
+
+    return (
+      <Grid textAlign="center" verticalAlign="middle" className="app">
+        <Grid.Column style={{ maxWidth: 450 }}>
+          <Header as="h2" icon color="black" textAlign="center">
+            <Icon name="puzzle piece" color="black" />
+            Register for DevChat
+          </Header>
+          <Form onSubmit={this.handleSubmit} size="large">
+            <Segment stacked>
+              <Form.Input
+                fluid
+                name="username"
+                icon="user"
+                iconPosition="left"
+                placeholder="username"
+                onChange={this.handleChange}
+                value={username}
+                type="text"
+              />
+              <Form.Input
+                fluid
+                name="email"
+                icon="mail"
+                iconPosition="left"
+                placeholder="Email Address"
+                onChange={this.handleChange}
+                value={email}
+                type="email"
+              />
+              <Form.Input
+                fluid
+                name="password"
+                icon="lock"
+                iconPosition="left"
+                placeholder="Password"
+                onChange={this.handleChange}
+                value={password}
+                type="password"
+              />
+              <Form.Input
+                fluid
+                name="confirmPassword"
+                icon="repeat"
+                iconPosition="left"
+                placeholder="Confirm Password"
+                onChange={this.handleChange}
+                value={confirmPassword}
+                type="password"
+              />
+              <Button
+                disabled={loading}
+                className={loading ? 'loading' : ''}
+                color="black"
+                fluid
+                size="large"
+              >
+                Submit
+              </Button>
+            </Segment>
+          </Form>
+          {errors.length > 0 && (
+            <Message error>
+              <h3>Error</h3>
+              {this.displayErrors(errors)}
+            </Message>
+          )}
+          <Message>
+            Already a user? <Link to="/login">Login</Link>
           </Message>
-        )}
-
-        <Message>
-          Already a user? <Link to="/login">Login</Link>
-        </Message>
-      </Grid.Column>
-    </Grid>
-  );
-};
+        </Grid.Column>
+      </Grid>
+    );
+  }
+}
 
 export default Register;
