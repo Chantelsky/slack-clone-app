@@ -4,6 +4,15 @@ import 'semantic-ui-css/semantic.min.css';
 import * as serviceWorker from './serviceWorker';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
+// import './App.css';
+import App from './components/App';
+import firebase from './firebase';
+import { createStore } from 'redux';
+import { Provider, connect } from 'react-redux';
+import { composeWithDevTools } from 'redux-devtools-extension';
+import rootReducer from './reducers';
+import { setUser } from './actions';
+import Spinner from './components/Spinner';
 import {
   BrowserRouter as Router,
   Switch,
@@ -11,13 +20,6 @@ import {
   Route,
   withRouter,
 } from 'react-router-dom';
-import './App.css';
-import firebase from './firebase';
-import { createStore } from 'redux';
-import { Provider, connect } from 'react-redux';
-import { composeWithDevTools } from 'redux-devtools-extension';
-import rootReducer from './reducers';
-import { setUser } from './actions';
 
 const store = createStore(rootReducer, composeWithDevTools());
 
@@ -31,10 +33,12 @@ class Root extends React.Component {
     });
   }
   render() {
-    return (
+    return this.props.isLoading ? (
+      <Spinner />
+    ) : (
       <>
         <Switch>
-          <Route path="/" />
+          <Route path="/" component={App} />
           <Route path="/login" component={Login} />
           <Route path="/register" component={Register} />
         </Switch>
@@ -43,7 +47,11 @@ class Root extends React.Component {
   }
 }
 
-const RootWithAuth = withRouter(connect(null, { setUser })(Root));
+const mapStateFromProps = (state) => ({
+  isLoading: state.user.isLoading,
+});
+
+const RootWithAuth = withRouter(connect(mapStateFromProps, { setUser })(Root));
 
 //provider will provide global state to any component
 ReactDOM.render(
