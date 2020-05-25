@@ -6,7 +6,13 @@ class MessagesHeader extends React.Component {
     return (
       <Segment clearing>
         {/* Channel Title */}
-        <Header fluid="true" as="h2" floated="left" style={{ marginBottom: 0 }}>
+        <Header
+          className={'message_header'}
+          fluid="true"
+          as="h3"
+          floated="left"
+          style={{ marginBottom: 0 }}
+        >
           <span>
             Channel
             <Icon name={'star outline'} color="black" />
@@ -16,7 +22,8 @@ class MessagesHeader extends React.Component {
           {/* Channel Search Input */}
           <Header floated="right">
             <Input
-              size="mini"
+              className={'header_input'}
+              size="small"
               icon="search"
               name="searchTerm"
               placeholder="search Messages"

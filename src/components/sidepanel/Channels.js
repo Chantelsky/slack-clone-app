@@ -135,7 +135,7 @@ class Channels extends React.Component {
               <Form.Field>
                 <Input
                   fluid
-                  label="name of channel"
+                  label="Name of channel"
                   name="channelName"
                   onChange={this.handleChange}
                 />

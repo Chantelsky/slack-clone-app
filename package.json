@@ -8,6 +8,7 @@
     "@testing-library/user-event": "^7.1.2",
     "firebase": "^7.14.4",
     "md5": "^2.2.1",
+    "mime-types": "^2.1.27",
     "moment": "^2.26.0",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
