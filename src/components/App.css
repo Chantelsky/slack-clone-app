@@ -6,6 +6,10 @@ body,
   padding: 1rem;
 }
 
+input {
+  font-size: 1rem !important;
+}
+
 .message_header {
   display: flex;
   align-items: baseline;
@@ -20,8 +24,13 @@ body,
 
 /*Messages */
 .messages {
-  height: 440px;
+  height: 70vh;
   overflow-y: scroll;
+}
+
+.messages__progress {
+  height: 58vh;
+  overflow: scroll;
 }
 
 /*messageform */
@@ -41,4 +50,8 @@ body,
 
 .message__image {
   padding: 1rem;
+}
+
+.progress__bar {
+  margin: 0.3rem 0 0 0 !important;
 }
