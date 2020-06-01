@@ -66,7 +66,7 @@ class Messages extends React.Component {
       return acc;
     }, []);
     this.setState({ searchResults });
-    setTimeout(() => this.setState({ searchLoading: false }), 1000);
+    setTimeout(() => this.setState({ searchLoading: true }), 1000);
   };
 
   countUniqueUsers = (messages) => {
@@ -101,7 +101,7 @@ class Messages extends React.Component {
 
   render() {
     //prettier-ignore
-    const { messagesRef, messages, channel, user, progressBar, numUniqueUsers, searchTerm,searchLoading, searchResults } = this.state;
+    const { messagesRef, messages, channel, user, progressBar, numUniqueUsers, searchTerm, searchLoading, searchResults } = this.state;
     return (
       <React.Fragment>
         <MessagesHeader

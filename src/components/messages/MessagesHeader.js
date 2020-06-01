@@ -3,6 +3,7 @@ import { Header, Segment, Input, Icon } from 'semantic-ui-react';
 
 class MessagesHeader extends React.Component {
   render() {
+    //prettier ignore
     const {
       channelName,
       numUniqueUsers,
